@@ -11,46 +11,96 @@ using System.Windows.Forms;
 
 namespace DaysCounterUI
 {
-    public partial class Form1 : Form
+    public partial class DayCounter : Form
     {
-        public Form1()
+        #region private fields
+        private string _titel;
+        private string _setFromDate;
+        private bool _reset=false;
+        #endregion
+
+
+        public DayCounter()
         {
             InitializeComponent();
             if (!backgroundWorker1.IsBusy)
             {
                 backgroundWorker1.RunWorkerAsync();
             }
-          
         }
-        public void CountDays()
-        {
-           
-        }
-
+    
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             while (true)
             {
-                string startingDay = ConfigurationManager.AppSettings["startingDate"];
-
-                if (DateTime.TryParse(startingDay, out DateTime startDatetime))
+                //read data from configurationmanager
+                ConfigurationManager.RefreshSection("appSettings");
+                _setFromDate = ConfigurationManager.AppSettings["startingDate"];
+                _titel= ConfigurationManager.AppSettings["lblTitel"];
+                if (string.IsNullOrEmpty(_setFromDate)||_reset)
                 {
-                    TimeSpan timespan = DateTime.Now - startDatetime;
-                    string timeSpanEyeFriendly= String.Format("{0:0.00000} days and counting", timespan.TotalDays);
-
-                    InvokeLabel(timeSpanEyeFriendly);
+                    InvokePanelShow(pnlSetDate);
                 }
                 else
                 {
-                    InvokeLabel("startingDate in app.config is not set to a valid date"); 
+                    InvokePanelShow(pnlShowDaysInfo);
+                    ShowTimeSpan(_setFromDate);
                 }
             }
         }
 
-        private void InvokeLabel(string tekst)
+        private void ShowTimeSpan(string startingDay)
         {
-            Action action = () => lblDays.Text = tekst;
-            lblDays.Invoke(action);
+            if (DateTime.TryParse(startingDay, out DateTime startDatetime))
+            {
+                TimeSpan timespan = DateTime.Now - startDatetime;
+                string timeSpanFormatted = String.Format("{0:0.00000} days and counting", timespan.TotalDays);
+                string startingDayFormatted = String.Format("since {0} ", startingDay);
+
+                //Invoke label title
+                InvokeLabel(_titel,lblTitel);
+                //Invoke label days
+                InvokeLabel(timeSpanFormatted,lblDays);
+                //Invoke label since date
+                InvokeLabel(startingDayFormatted, lblDateSince);
+            }
+        }
+
+        private void InvokeLabel(string tekst,Label labelToInvoke)
+        {
+            Action action = () => labelToInvoke.Text = tekst;
+            labelToInvoke.Invoke(action);
+
+        }
+        private void InvokePanelShow(Panel panel)
+        {
+            Action action1 = () => panel.BringToFront();
+            panel.Invoke(action1);
+            Action action2 = () => panel.Show();
+            panel.Invoke(action2);
+        }
+                
+
+        private void btnSetStartingDate_Click(object sender, EventArgs e)
+        {
+            //Set datetime to midnight hour
+            DateTime startingDate = datePicker1.Value;
+            string modifiedStartingDate =  new DateTime(startingDate.Year, startingDate.Month, startingDate.Day, 0, 0, 0).ToString();
+
+            Configuration config =
+           ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings.Remove("startingDate");
+            config.AppSettings.Settings.Add("startingDate", modifiedStartingDate);
+
+            config.AppSettings.Settings.Remove("lblTitel");
+            config.AppSettings.Settings.Add("lblTitel", txtBoxSetLabel.Text);
+            config.Save();
+            _reset = false;
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            _reset = true;
         }
     }
 }
