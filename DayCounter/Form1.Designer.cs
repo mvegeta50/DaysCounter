@@ -1,4 +1,4 @@
-﻿namespace DayCounter
+﻿namespace DaysCounterUI
 {
     partial class Form1
     {
