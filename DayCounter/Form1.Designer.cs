@@ -32,7 +32,7 @@
             this.lblDays = new System.Windows.Forms.Label();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.pnlSetDate = new System.Windows.Forms.Panel();
-            this.txtBoxSetLabel = new System.Windows.Forms.TextBox();
+            this.txtSetTitel = new System.Windows.Forms.TextBox();
             this.lblSetTekst = new System.Windows.Forms.Label();
             this.btnSetStartingDate = new System.Windows.Forms.Button();
             this.lblSetStartingDate = new System.Windows.Forms.Label();
@@ -57,11 +57,12 @@
             // 
             // backgroundWorker1
             // 
+            this.backgroundWorker1.WorkerSupportsCancellation = true;
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             // 
             // pnlSetDate
             // 
-            this.pnlSetDate.Controls.Add(this.txtBoxSetLabel);
+            this.pnlSetDate.Controls.Add(this.txtSetTitel);
             this.pnlSetDate.Controls.Add(this.lblSetTekst);
             this.pnlSetDate.Controls.Add(this.btnSetStartingDate);
             this.pnlSetDate.Controls.Add(this.lblSetStartingDate);
@@ -71,12 +72,12 @@
             this.pnlSetDate.Size = new System.Drawing.Size(370, 230);
             this.pnlSetDate.TabIndex = 1;
             // 
-            // txtBoxSetLabel
+            // txtSetTitel
             // 
-            this.txtBoxSetLabel.Location = new System.Drawing.Point(7, 41);
-            this.txtBoxSetLabel.Name = "txtBoxSetLabel";
-            this.txtBoxSetLabel.Size = new System.Drawing.Size(196, 20);
-            this.txtBoxSetLabel.TabIndex = 4;
+            this.txtSetTitel.Location = new System.Drawing.Point(7, 41);
+            this.txtSetTitel.Name = "txtSetTitel";
+            this.txtSetTitel.Size = new System.Drawing.Size(196, 20);
+            this.txtSetTitel.TabIndex = 4;
             // 
             // lblSetTekst
             // 
@@ -161,8 +162,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(380, 241);
-            this.Controls.Add(this.pnlShowDaysInfo);
             this.Controls.Add(this.pnlSetDate);
+            this.Controls.Add(this.pnlShowDaysInfo);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "DayCounter";
             this.Text = "Days counter";
@@ -184,7 +185,7 @@
         private System.Windows.Forms.DateTimePicker datePicker1;
         private System.Windows.Forms.Panel pnlShowDaysInfo;
         private System.Windows.Forms.Button btnReset;
-        private System.Windows.Forms.TextBox txtBoxSetLabel;
+        private System.Windows.Forms.TextBox txtSetTitel;
         private System.Windows.Forms.Label lblSetTekst;
         private System.Windows.Forms.Label lblTitel;
         private System.Windows.Forms.Label lblDateSince;

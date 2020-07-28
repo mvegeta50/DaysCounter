@@ -18,23 +18,28 @@ namespace DaysCounterUI
         private string _titel;
         private string _setFromDate;
         private bool _reset = false;
-        private Configuration _config = null;
         private ExeConfigurationFileMap _fileMap = null;
+        private Configuration _config = null;
         #endregion
 
 
         public DayCounter()
         {
             InitializeComponent();
-    
+
             InitializeConfigFileMap();
 
-            if (!backgroundWorker1.IsBusy)
+            ShowSetDatePanel();
+
+            RunWorker();
+        }
+
+        private void ShowSetDatePanel()
+        {
+            if (string.IsNullOrEmpty(_setFromDate))
             {
-                backgroundWorker1.RunWorkerAsync();
+                pnlSetDate.BringToFront();
             }
-
-
         }
 
         private void InitializeConfigFileMap()
@@ -46,44 +51,46 @@ namespace DaysCounterUI
             _fileMap.ExeConfigFilename = fullPathConfigFile;
 
             _config = ConfigurationManager.OpenMappedExeConfiguration(_fileMap, ConfigurationUserLevel.None);
+            if (_config.AppSettings.Settings["startingDate"] != null)
+            {
+                _setFromDate = _config.AppSettings.Settings["startingDate"].Value;
+                if (DateTime.TryParse(_setFromDate, out DateTime result))
+                {
+                    datePicker1.Value = result;
+                };
+            }
+            if (_config.AppSettings.Settings["lblTitel"] != null)
+            {
+                _titel = _config.AppSettings.Settings["lblTitel"].Value;
+                txtSetTitel.Text = _titel;
+            }
+
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            while (true)
-            {
-                //read data from configurationmanager
-                if (_config != null)
-                {
-                    _setFromDate = _config.AppSettings.Settings["startingDate"].Value;
-                    _titel = _config.AppSettings.Settings["lblTitel"].Value;
-                    if (string.IsNullOrEmpty(_setFromDate) || _reset)
-                    {
-                        InvokePanelShow(pnlSetDate);
-                    }
-                    else
-                    {
-                        InvokePanelShow(pnlShowDaysInfo);
-                        ShowTimeSpan(_setFromDate);
-                    }
-                }
-            }
+
+            InvokePanelShow(pnlShowDaysInfo);
+            ShowTimeSpan();
         }
 
-        private void ShowTimeSpan(string startingDay)
+        private void ShowTimeSpan()
         {
-            if (DateTime.TryParse(startingDay, out DateTime startDatetime))
+            while (!_reset)
             {
-                TimeSpan timespan = DateTime.Now - startDatetime;
-                string timeSpanFormatted = String.Format("{0:0.00000} days and counting", timespan.TotalDays);
-                string startingDayFormatted = String.Format("since {0} ", startingDay);
+                if (DateTime.TryParse(_setFromDate, out DateTime startDatetime))
+                {
+                    TimeSpan timespan = DateTime.Now - startDatetime;
+                    string timeSpanFormatted = String.Format("{0:0.00000} days and counting", timespan.TotalDays);
+                    string setFromDateFormatted = String.Format("since {0} ", _setFromDate);
 
-                //Invoke label title
-                InvokeLabel(_titel, lblTitel);
-                //Invoke label days
-                InvokeLabel(timeSpanFormatted, lblDays);
-                //Invoke label since date
-                InvokeLabel(startingDayFormatted, lblDateSince);
+                    //Invoke label title
+                    InvokeLabel(_titel, lblTitel);
+                    //Invoke label days
+                    InvokeLabel(timeSpanFormatted, lblDays);
+                    //Invoke label since date
+                    InvokeLabel(setFromDateFormatted, lblDateSince);
+                }
             }
         }
 
@@ -97,8 +104,6 @@ namespace DaysCounterUI
         {
             Action action1 = () => panel.BringToFront();
             panel.Invoke(action1);
-            Action action2 = () => panel.Show();
-            panel.Invoke(action2);
         }
 
 
@@ -108,23 +113,38 @@ namespace DaysCounterUI
             //Set datetime to midnight hour
             DateTime startingDate = datePicker1.Value;
             string modifiedStartingDate = new DateTime(startingDate.Year, startingDate.Month, startingDate.Day, 0, 0, 0).ToString();
+            PersistConfigFile(modifiedStartingDate);
 
+            _reset = false;
+            RunWorker();
 
+        }
+
+        private void PersistConfigFile(string modifiedStartingDate)
+        {
             _config = ConfigurationManager.OpenMappedExeConfiguration(_fileMap, ConfigurationUserLevel.None);
             _config.AppSettings.Settings.Remove("startingDate");
             _config.AppSettings.Settings.Add("startingDate", modifiedStartingDate);
 
             _config.AppSettings.Settings.Remove("lblTitel");
-            _config.AppSettings.Settings.Add("lblTitel", txtBoxSetLabel.Text);
+            _config.AppSettings.Settings.Add("lblTitel", txtSetTitel.Text);
             _config.Save();
+            _setFromDate = modifiedStartingDate;
+            _titel = txtSetTitel.Text;
+        }
 
-
-            _reset = false;
+        private void RunWorker()
+        {
+            if (!backgroundWorker1.IsBusy)
+            {
+                backgroundWorker1.RunWorkerAsync();
+            }
         }
 
         private void btnReset_Click(object sender, EventArgs e)
         {
             _reset = true;
+            pnlSetDate.BringToFront();
         }
     }
 }
