@@ -31,7 +31,7 @@ namespace DaysCounterUI
 
             ShowSetDatePanel();
 
-            RunWorker();
+            //  Task.Run(()=> RunWorkerAsync()).GetAwaiter().GetResult();
         }
 
         private void ShowSetDatePanel()
@@ -46,11 +46,16 @@ namespace DaysCounterUI
         {
             //Initialize appdata location
             string app_data = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string fullPathConfigFile = Path.Combine(app_data, "DaysCounter", "DaysCounterUI.exe.config");
+            string fullPathConfigDirectory = Path.Combine(app_data, "DaysCounter");
+            Directory.CreateDirectory(fullPathConfigDirectory);
+            string fullPathConfigFile = Path.Combine(fullPathConfigDirectory, "DaysCounterUI.exe.config");
+
+
             _fileMap = new ExeConfigurationFileMap();
             _fileMap.ExeConfigFilename = fullPathConfigFile;
 
             _config = ConfigurationManager.OpenMappedExeConfiguration(_fileMap, ConfigurationUserLevel.None);
+            _config.Save(ConfigurationSaveMode.Minimal, true);
             if (_config.AppSettings.Settings["startingDate"] != null)
             {
                 _setFromDate = _config.AppSettings.Settings["startingDate"].Value;
@@ -65,49 +70,35 @@ namespace DaysCounterUI
                 txtSetTitel.Text = _titel;
             }
 
+
         }
 
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+
+        private async Task ShowTimeSpan()
         {
+         await  Task.Run(() =>
+           {
+               while (!_reset)
+               {
+                   if (DateTime.TryParse(_setFromDate, out DateTime startDatetime))
+                   {
+                       TimeSpan timespan = DateTime.Now - startDatetime;
+                       string timeSpanFormatted = String.Format("{0:0.00000} days and counting", timespan.TotalDays);
+                       string setFromDateFormatted = String.Format("since {0} ", _setFromDate);
 
-            InvokePanelShow(pnlShowDaysInfo);
-            ShowTimeSpan();
-        }
-
-        private void ShowTimeSpan()
-        {
-            while (!_reset)
-            {
-                if (DateTime.TryParse(_setFromDate, out DateTime startDatetime))
-                {
-                    TimeSpan timespan = DateTime.Now - startDatetime;
-                    string timeSpanFormatted = String.Format("{0:0.00000} days and counting", timespan.TotalDays);
-                    string setFromDateFormatted = String.Format("since {0} ", _setFromDate);
-
-                    //Invoke label title
-                    InvokeLabel(_titel, lblTitel);
-                    //Invoke label days
-                    InvokeLabel(timeSpanFormatted, lblDays);
-                    //Invoke label since date
-                    InvokeLabel(setFromDateFormatted, lblDateSince);
-                }
-            }
-        }
-
-        private void InvokeLabel(string tekst, Label labelToInvoke)
-        {
-            Action action = () => labelToInvoke.Text = tekst;
-            labelToInvoke.Invoke(action);
-
-        }
-        private void InvokePanelShow(Panel panel)
-        {
-            Action action1 = () => panel.BringToFront();
-            panel.Invoke(action1);
+                       //Invoke label title
+                       lblTitel.Text = _titel;
+                       //Invoke label days
+                       lblDays.Text = timeSpanFormatted;
+                       //Invoke label since date
+                       lblDateSince.Text = setFromDateFormatted;
+                   }
+               }
+           });
         }
 
 
-        private void btnSetStartingDate_Click(object sender, EventArgs e)
+        private async void btnSetStartingDate_Click(object sender, EventArgs e)
         {
 
             //Set datetime to midnight hour
@@ -116,7 +107,7 @@ namespace DaysCounterUI
             PersistConfigFile(modifiedStartingDate);
 
             _reset = false;
-            RunWorker();
+            await RunWorkerAsync();
 
         }
 
@@ -133,12 +124,10 @@ namespace DaysCounterUI
             _titel = txtSetTitel.Text;
         }
 
-        private void RunWorker()
+        private async Task RunWorkerAsync()
         {
-            if (!backgroundWorker1.IsBusy)
-            {
-                backgroundWorker1.RunWorkerAsync();
-            }
+            pnlShowDaysInfo.BringToFront();
+            await ShowTimeSpan();
         }
 
         private void btnReset_Click(object sender, EventArgs e)

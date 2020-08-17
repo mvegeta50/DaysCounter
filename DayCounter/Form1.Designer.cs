@@ -30,7 +30,6 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DayCounter));
             this.lblDays = new System.Windows.Forms.Label();
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.pnlSetDate = new System.Windows.Forms.Panel();
             this.txtSetTitel = new System.Windows.Forms.TextBox();
             this.lblSetTekst = new System.Windows.Forms.Label();
@@ -54,11 +53,6 @@
             this.lblDays.Size = new System.Drawing.Size(48, 23);
             this.lblDays.TabIndex = 0;
             this.lblDays.Text = "Days";
-            // 
-            // backgroundWorker1
-            // 
-            this.backgroundWorker1.WorkerSupportsCancellation = true;
-            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             // 
             // pnlSetDate
             // 
@@ -178,7 +172,6 @@
         #endregion
 
         private System.Windows.Forms.Label lblDays;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.Panel pnlSetDate;
         private System.Windows.Forms.Button btnSetStartingDate;
         private System.Windows.Forms.Label lblSetStartingDate;
