@@ -31,7 +31,7 @@ namespace DaysCounterUI
 
             ShowSetDatePanel();
 
-            RunWorker();
+            StartShowDaysInfo();
         }
 
         private void ShowSetDatePanel()
@@ -69,8 +69,6 @@ namespace DaysCounterUI
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-
-            InvokePanelShow(pnlShowDaysInfo);
             ShowTimeSpan();
         }
 
@@ -116,8 +114,7 @@ namespace DaysCounterUI
             PersistConfigFile(modifiedStartingDate);
 
             _reset = false;
-            RunWorker();
-
+            StartShowDaysInfo();
         }
 
         private void PersistConfigFile(string modifiedStartingDate)
@@ -133,6 +130,16 @@ namespace DaysCounterUI
             _titel = txtSetTitel.Text;
         }
 
+        private void StartShowDaysInfo()
+        {
+            BringPanelToFront(pnlShowDaysInfo);
+            RunWorker();
+        }
+
+        private void BringPanelToFront(Panel panel)
+        {
+            panel.BringToFront();
+        }
         private void RunWorker()
         {
             if (!backgroundWorker1.IsBusy)
